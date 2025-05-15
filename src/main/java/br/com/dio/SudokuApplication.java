@@ -19,6 +19,7 @@ public class SudokuApplication {
 	static Scanner scanner = new Scanner(System.in);
 	private static Board board;
 	private final static int BOARD_LIMIT = 9;
+	private static int BOARD_ERRORS = 3;
 
 	public static void main(String[] args) {
 		// // Verifica se os argumentos foram passados
@@ -46,6 +47,11 @@ public class SudokuApplication {
 		var options = -1;
 
 		while (true) {
+
+			if (BOARD_ERRORS <= 0) {
+				System.out.println("Você deve iniciar um novo jogo.");
+			}
+
 			System.out.println("Escolha uma opção:");
 			System.out.println("1 - Novo jogo");
 			System.out.println("2 - Novo número");
@@ -55,6 +61,8 @@ public class SudokuApplication {
 			System.out.println("6 - limpar jogo");
 			System.out.println("7 - Finalizar jogo");
 			System.out.println("0 - Sair");
+			System.out.println("==============================");
+			System.out.println("Você terá " + BOARD_ERRORS + " chances de erros. ");
 
 			options = scanner.nextInt();
 
@@ -90,152 +98,165 @@ public class SudokuApplication {
 	}
 
 	private static void startGame(final Map<String, String> positions) {
-			if (nonNull(board)) {
-				System.out.println("Jogo já iniciado...");
-				return;
-			}
+		if (nonNull(board)) {
+			System.out.println("Jogo já iniciado...");
+			return;
+		}
 
-			List<List<Space>> spaces = new ArrayList<>();
-			for (int i = 0; i < BOARD_LIMIT; i++) {
-				spaces.add(new ArrayList<>());
+		List<List<Space>> spaces = new ArrayList<>();
+		for (int i = 0; i < BOARD_LIMIT; i++) {
+			spaces.add(new ArrayList<>());
 
-				for (int j = 0; j < BOARD_LIMIT; j++) {
-					var positionConfig = positions.get("%s,%s".formatted(i, j));
-					var expectad = Integer.parseInt(positionConfig.split(",")[0]);
-					var fixed = Boolean.parseBoolean(positionConfig.split(",")[1]);
-					var currentSpace = new Space(expectad, fixed);
-					spaces.get(i).add(currentSpace);
-				}
+			for (int j = 0; j < BOARD_LIMIT; j++) {
+				var positionConfig = positions.get("%s,%s".formatted(i, j));
+				var expectad = Integer.parseInt(positionConfig.split(",")[0]);
+				var fixed = Boolean.parseBoolean(positionConfig.split(",")[1]);
+				var currentSpace = new Space(expectad, fixed);
+				spaces.get(i).add(currentSpace);
 			}
-			board = new Board(spaces);
-			System.out.println("Novo jogo iniciado com sucesso!");
+		}
+		board = new Board(spaces);
+		System.out.println("Novo jogo iniciado com sucesso!");
+		showCurrentGame();
 	}
 
 	private static void inputNumber() {
-			if (isNull(board)) {
-				System.out.println("Nenhum jogo iniciado.");
-				return;
-			}
+		if (isNull(board)) {
+			System.out.println("Nenhum jogo iniciado.");
+			return;
+		}
 
-			System.out.println("Informe a coluna: ");
-			var column = runUntilGetValidNumber(0, BOARD_LIMIT - 1);
-			System.out.println("Informe a linha: ");
-			var row = runUntilGetValidNumber(0, BOARD_LIMIT - 1);
-			System.out.printf("Informe o número para a posição [%s e %s]: ", column, row);
-			var value = runUntilGetValidNumber(1, 9);
+		System.out.println("Informe a coluna: ");
+		var column = runUntilGetValidNumber(0, BOARD_LIMIT - 1);
+		System.out.println("Informe a linha: ");
+		var row = runUntilGetValidNumber(0, BOARD_LIMIT - 1);
+		System.out.printf("Informe o número para a posição [%s e %s]: ", column, row);
+		var value = runUntilGetValidNumber(1, 9);
 
-			if (!board.changeValue( column, row,value)) {
-				System.out.printf("A posição [%s, %s] já está preenchida.", column, row );
-			}
+		if (!board.changeValue(column, row, value)) {
+			System.out.printf("A posição [%s, %s] já está preenchida.", column, row);
+		}
 
-			showCurrentGame();
+		showCurrentGame();
+
+		if (board.hasErrors()) {
+			BOARD_ERRORS--;
+			System.out.printf("A posição [%s, %s] está errada. Você possui " + BOARD_ERRORS + " chance(s). ", column,
+					row);
+		}
+
 	}
 
 	private static void removeNumber() {
-			if (isNull(board)) {
-				System.out.println("Nenhum jogo iniciado.");
-				return;
-			}
+		if (isNull(board)) {
+			System.out.println("Nenhum jogo iniciado.");
+			return;
+		}
 
-			System.out.println("Informe a coluna: ");
-			var column = runUntilGetValidNumber(0, BOARD_LIMIT - 1);
-			System.out.println("Informe a linha: ");
-			var row = runUntilGetValidNumber(0, BOARD_LIMIT - 1);
-			System.out.printf("Informe o número para a posição [%s e %s]: ", column, row);
-			var value = runUntilGetValidNumber(1, 9);
+		System.out.println("Informe a coluna: ");
+		var column = runUntilGetValidNumber(0, BOARD_LIMIT - 1);
+		System.out.println("Informe a linha: ");
+		var row = runUntilGetValidNumber(0, BOARD_LIMIT - 1);
+		System.out.println("Número removido com sucesso!");
+		// System.out.printf("Informe o número para a posição [%s e %s]: ", column,
+		// row);
+		// var value = runUntilGetValidNumber(1, 9);
 
-			if (!board.clearValue(row, column)) {
-				System.out.printf("A posição [%s, %s] já está preenchida.", column, row);
-			}
+		if (!board.clearValue(row, column)) {
+			System.out.printf("A posição [%s, %s] não está preenchida.", column, row);
+		}
 
+		showCurrentGame();
 	}
 
 	private static void showCurrentGame() {
-			if (isNull(board)) {
-				System.out.println("Nenhum jogo iniciado.");
-				return;
-			}
+		if (isNull(board)) {
+			System.out.println("Nenhum jogo iniciado.");
+			return;
+		}
 
-			var args = new Object[81];
-			var argsPos = 0;
-			for (int i = 0; i < BOARD_LIMIT; i++) {
-				for (var column : board.getSpaces()) {
-					args[argsPos++] = " " + ((isNull(column.get(i).getActual())) ? " " : column.get(i).getActual());
-				}
+		var args = new Object[81];
+		var argsPos = 0;
+		for (int i = 0; i < BOARD_LIMIT; i++) {
+			for (var column : board.getSpaces()) {
+				args[argsPos++] = " " + ((isNull(column.get(i).getActual())) ? " " : column.get(i).getActual());
 			}
+		}
 
-			System.out.println("Seu jogo está assim: ");
-			System.out.printf((BoardTemplate.BOARD_TEMPLATE) + "\n", args);
+		System.out.println("Seu jogo está assim: ");
+		System.out.printf((BoardTemplate.BOARD_TEMPLATE) + "\n", args);
 
 	}
 
 	private static void showCurrentStatus() {
-			if (isNull(board)) {
-				System.out.println("Nenhum jogo iniciado.");
-				return;
-			}
+		if (isNull(board)) {
+			System.out.println("Nenhum jogo iniciado.");
+			return;
+		}
 
-			System.out.printf("Status do jogo: %s\n", board.getGameStatus().getLabel());
-			if (board.hasErrors()) {
-				System.out.println("O jogo possui erros.");
-			} else {
-				System.out.println("O jogo não possui erros.");
-			}
+		System.out.printf("Status do jogo: %s\n", board.getGameStatus().getLabel());
+		if (board.hasErrors()) {
+			System.out.println("O jogo possui erros.");
+		} else {
+			System.out.println("O jogo não possui erros.");
+		}
 
 	}
 
 	private static void clearGame() {
-			if (isNull(board)) {
-				System.out.println("Nenhum jogo iniciado.");
-				return;
-			}
+		if (isNull(board)) {
+			System.out.println("Nenhum jogo iniciado.");
+			return;
+		}
 
-			System.out.println("Tem certeza que deseja limpar o jogo? (s/n)");
+		System.out.println("Tem certeza que deseja limpar o jogo? (s/n)");
 
-			var option = scanner.next().toLowerCase();
+		var option = scanner.next().toLowerCase();
 
-			while (!option.equals("s") && !option.equals("n")) {
-				System.out.println("Opção inválida. Informe 's' para sim ou 'n' para não.");
-				option = scanner.next().toLowerCase();
-			}
+		while (!option.equals("s") && !option.equals("n")) {
+			System.out.println("Opção inválida. Informe 's' para sim ou 'n' para não.");
+			option = scanner.next().toLowerCase();
+		}
 
-			if (option.equals("s")) {
-				System.out.println("Limpando o jogo...");
-				board.reset();
-			}
-
+		if (option.equals("s")) {
+			System.out.println("Limpando o jogo...");
+			board.reset();
+		}
+		showCurrentGame();
 	}
 
 	private static void finishGame() {
-			if (isNull(board)) {
-				System.out.println("Nenhum jogo iniciado.");
-				return;
-			}
+		if (isNull(board)) {
+			System.out.println("Nenhum jogo iniciado.");
+			return;
+		}
 
-			System.out.println("Tem certeza que deseja finalizar o jogo? (s/n)");
-			var option = scanner.next().toLowerCase();
-			while (!option.equals("s") && !option.equals("n")) {
-				System.out.println("Opção inválida. Informe 's' para sim ou 'n' para não.");
-				option = scanner.next().toLowerCase();
-			}
+		System.out.println("Tem certeza que deseja finalizar o jogo? (s/n)");
+		var option = scanner.next().toLowerCase();
+		while (!option.equals("s") && !option.equals("n")) {
+			System.out.println("Opção inválida. Informe 's' para sim ou 'n' para não.");
+			option = scanner.next().toLowerCase();
+		}
 
-			if (option.equals("n")) {
-				System.out.println("Jogo não finalizado...");
-				return;
-			}
+		if (option.equals("n")) {
+			System.out.println("Jogo não finalizado...");
+			showCurrentGame();
+			return;
+		}
 
-			if (board.gameFinished()) {
-				System.out.println("Finalizando o jogo...");
+		if (board.gameFinished()) {
+			System.out.println("Finalizando o jogo...");
 
-				showCurrentGame();
-				board = null;
+			showCurrentGame();
+			board = null;
 
-				System.out.println("Jogo finalizado com sucesso!");
-			} else if (board.hasErrors()) {
-				System.out.println("O jogo possui erros. Não é possível finalizar.");
-			} else {
-				System.out.println("Voce ainda precisa preencher algum espaço.");
-			}
+			System.out.println("Jogo finalizado com sucesso!");
+		} else if (board.hasErrors()) {
+			System.out.println("O jogo possui erros. Não é possível finalizar.");
+		} else {
+			System.out.println("Voce ainda precisa preencher algum espaço.");
+		}
+		showCurrentGame();
 
 	}
 
