@@ -9,7 +9,7 @@ import br.com.dio.model.Space;
 import br.com.dio.model.enums.GameStatusEnum;
 
 public class BoardService{
-    private final static int BOARD_LIMIT =9;
+    private final static int BOARD_LIMIT = 9;
 
     private final Board board;
 

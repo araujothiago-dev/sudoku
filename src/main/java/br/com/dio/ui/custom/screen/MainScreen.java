@@ -13,6 +13,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import br.com.dio.model.Space;
+import br.com.dio.model.enums.GameStatusEnum;
 import br.com.dio.service.BoardService;
 import br.com.dio.service.NotifierService;
 import br.com.dio.service.enums.EventEnum;
@@ -32,6 +33,7 @@ public class MainScreen {
     private JButton checkGameStatusButton;
     private JButton finishGameButton;
     private JButton resetButton;
+    private final List<NumberText> allFields = new ArrayList<>(); // Lista global para armazenar todos os campos
 
     public MainScreen(final Map<String, String> gameConfig) {
         this.boardService = new BoardService(gameConfig);
@@ -53,13 +55,14 @@ public class MainScreen {
         addResutButton(mainPanel);
         addCheckGameStatusButton(mainPanel);
         addFinishGameButton(mainPanel);
+        addAlterModeButton(mainPanel);
         mainFrame.revalidate();
         mainFrame.repaint();
     }
 
     private List<Space> getSpacesFromSector(final List<List<Space>> spaces,
-                                            final int initCol, final int endCol,
-                                            final int initRow, final int endRow){
+            final int initCol, final int endCol,
+            final int initRow, final int endRow) {
         List<Space> spaceSector = new ArrayList<>();
         for (int r = initRow; r <= endRow; r++) {
             for (int c = initCol; c <= endCol; c++) {
@@ -69,8 +72,11 @@ public class MainScreen {
         return spaceSector;
     }
 
-    private JPanel generateSection(final List<Space> spaces){
-        List<NumberText> fields = new ArrayList<>(spaces.stream().map(NumberText::new).toList());
+    private JPanel generateSection(final List<Space> spaces) {
+        List<NumberText> fields = new ArrayList<>(spaces.stream()
+                .map(space -> new NumberText(space, allFields)) // Passa a lista global como segundo parâmetro
+                .toList());
+        allFields.addAll(fields); // Adiciona os campos criados à lista global
         fields.forEach(t -> notifierService.subscribe(EventEnum.CLEAR_SPACE, t));
         return new SudokuSector(fields);
     }
@@ -119,5 +125,16 @@ public class MainScreen {
             }
         });
         mainPanel.add(resetButton);
+    }
+
+    private void addAlterModeButton(JPanel mainPanel) {
+        JButton alterModeButton = new JButton("Alternar para Rascunho");
+        alterModeButton.addActionListener(e -> {
+            allFields.forEach(NumberText::alterGameMode);
+        });
+        if (boardService.getStatus() != GameStatusEnum.INCOMPLETE) {
+            
+        }
+        mainPanel.add(alterModeButton);
     }
 }
