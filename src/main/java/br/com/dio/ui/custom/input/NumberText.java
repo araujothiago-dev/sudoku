@@ -8,8 +8,10 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import br.com.dio.model.Space;
+import br.com.dio.service.EventsListener;
+import br.com.dio.service.enums.EventEnum;
 
-public class NumberText extends JTextField {
+public class NumberText extends JTextField implements EventsListener {
     private final Space space;
 
     public NumberText(final Space space) {
@@ -40,15 +42,11 @@ public class NumberText extends JTextField {
             @Override
             public void insertUpdate(final DocumentEvent e) {
                 changeSpace();
-
-                // space.setActual(0);
             }
 
             @Override
             public void removeUpdate(final DocumentEvent e) {
                 changeSpace();
-
-                // space.setActual(0);
             }
 
             @Override
@@ -56,5 +54,12 @@ public class NumberText extends JTextField {
                 changeSpace();
             }
         });
+    }
+
+    @Override
+    public void update(final EventEnum eventType) {
+        if(eventType.equals(eventType.CLEAR_SPACE) && (this.isEnabled())){
+            this.setText("");
+        }
     }
 }
