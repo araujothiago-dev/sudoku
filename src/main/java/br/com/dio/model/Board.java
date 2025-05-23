@@ -19,7 +19,7 @@ public class Board {
         return spaces;
     }
 
-    public GameStatusEnum getGameStatus() {
+    public GameStatusEnum getStatus() {
         if (spaces.stream().flatMap(Collection::stream)
                 .noneMatch(space -> !space.isFixed() && nonNull(space.getActual()))) {
             return GameStatusEnum.NON_STARTED;
@@ -31,7 +31,7 @@ public class Board {
     }
 
     public boolean hasErrors() {
-        if (getGameStatus() == GameStatusEnum.NON_STARTED) {
+        if (getStatus() == GameStatusEnum.NON_STARTED) {
             return false;
 
         }
@@ -65,6 +65,6 @@ public class Board {
     }
 
     public boolean gameFinished() {
-        return getGameStatus().equals(GameStatusEnum.COMPLETE) && !hasErrors();
+        return getStatus().equals(GameStatusEnum.COMPLETE) && !hasErrors();
     }
 }
